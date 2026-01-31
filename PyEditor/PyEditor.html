@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyEditor</title>
+    
+    <link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/editor/editor.main.min.css">
+
+    <style>
+        :root {
+            --bg: #1e1e1e;
+            --header: #2d2d2d;
+            --accent: #4ec9b0;
+            --success: #2ea043;
+            --blue: #0e639c;
+            --error: #f48771;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; padding: 0;
+            background: var(--bg);
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            overflow: hidden;
+        }
+
+        header {
+            height: 60px;
+            background: var(--header);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            border-bottom: 1px solid #444;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        .logo { font-weight: bold; color: var(--accent); font-size: 1.2rem; }
+        
+        .controls { display: flex; align-items: center; gap: 15px; }
+
+        select {
+            background: #3c3c3c;
+            color: white;
+            border: 1px solid #555;
+            padding: 5px 10px;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        button {
+            border: none;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        #run-btn { background: var(--success); }
+        #download-btn { background: var(--blue); }
+        button:hover:not(:disabled) { opacity: 0.9; }
+        button:disabled { background: #555; cursor: wait; }
+
+        #main-container { flex-grow: 1; display: flex; flex-direction: column; }
+        #editor { flex-grow: 1; width: 100%; }
+        
+        #console-container {
+            height: 35%;
+            background: #000;
+            border-top: 2px solid #333;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .console-header {
+            background: #1a1a1a;
+            padding: 6px 15px;
+            font-size: 11px;
+            color: #888;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-transform: uppercase;
+        }
+
+        #output {
+            flex-grow: 1;
+            margin: 0;
+            padding: 10px 15px;
+            font-family: 'Consolas', monospace;
+            font-size: 14px;
+            color: #adadad;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: #ff4444; display: inline-block; }
+        .status-ready { background: #00ff00; }
+        #clear-btn { cursor: pointer; color: var(--accent); font-weight: bold; }
+        .error-text { color: var(--error); }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">PyEditor</div>
+    
+    <div class="controls">
+        <select id="lang-switcher">
+            <option value="en" selected>English (EN)</option>
+            <option value="pl">Polski (PL)</option>
+        </select>
+        <button id="download-btn">Download .py</button>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span id="status-dot" class="status-dot"></span>
+            <span id="status-text" style="font-size: 12px; color: #aaa;">Initializing...</span>
+        </div>
+        <button id="run-btn" disabled>Loading...</button>
+    </div>
+</header>
+
+<div id="main-container">
+    <div id="editor"></div>
+    <div id="console-container">
+        <div class="console-header">
+            <span id="terminal-label">Output Terminal</span>
+            <span id="clear-btn">[CLEAR]</span>
+        </div>
+        <pre id="output"></pre>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js"></script>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+
+<script>
+    let pyodide, editor, lang = 'en';
+
+    const ui = {
+        en: {
+            loading: "Loading Python...",
+            ready: "System ready",
+            run: "Run Script",
+            wait: "Wait...",
+            terminal: "Output Terminal",
+            welcome: "print('Hello World!')",
+            running: "Executing..."
+        },
+        pl: {
+            loading: "Ładowanie Pythona...",
+            ready: "System gotowy",
+            run: "Uruchom kod",
+            wait: "Czekaj...",
+            terminal: "Terminal wyjściowy",
+            welcome: "print('Witaj świecie!')",
+            running: "Uruchamianie..."
+        }
+    };
+
+    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs' }});
+    require(['vs/editor/editor.main'], function() {
+        const savedCode = localStorage.getItem('py_editor_content');
+        editor = monaco.editor.create(document.getElementById('editor'), {
+            value: savedCode || ui[lang].welcome,
+            language: 'python',
+            theme: 'vs-dark',
+            automaticLayout: true,
+            fontSize: 14
+        });
+        editor.onDidChangeModelContent(() => {
+            localStorage.setItem('py_editor_content', editor.getValue());
+        });
+    });
+
+    async function init() {
+        const statusText = document.getElementById('status-text');
+        const statusDot = document.getElementById('status-dot');
+        const runBtn = document.getElementById('run-btn');
+        const out = document.getElementById('output');
+
+        try {
+            pyodide = await loadPyodide({
+                indexURL: "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/"
+            });
+            statusDot.classList.add('status-ready');
+            statusText.innerText = ui[lang].ready;
+            runBtn.innerText = ui[lang].run;
+            runBtn.disabled = false;
+            out.innerText = ">>> Python Ready.\n";
+        } catch (err) {
+            statusText.innerText = "ERROR";
+            out.innerText = "WASM Error: " + err.message;
+        }
+    }
+
+    document.getElementById('lang-switcher').onchange = (e) => {
+        lang = e.target.value;
+        document.getElementById('terminal-label').innerText = ui[lang].terminal;
+        if (pyodide) {
+            document.getElementById('status-text').innerText = ui[lang].ready;
+            document.getElementById('run-btn').innerText = ui[lang].run;
+        }
+    };
+
+    document.getElementById('clear-btn').onclick = () => {
+        document.getElementById('output').innerText = "";
+    };
+
+    document.getElementById('download-btn').onclick = () => {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([editor.getValue()], {type: "text/plain"}));
+        a.download = "script.py";
+        a.click();
+    };
+
+    document.getElementById('run-btn').onclick = async () => {
+        const out = document.getElementById('output');
+        out.innerText = ui[lang].running + "\n";
+        pyodide.setStdout({ batched: (msg) => out.innerText += msg + "\n" });
+        try {
+            await pyodide.runPythonAsync(editor.getValue());
+        } catch (err) {
+            out.innerHTML += `<span class="error-text">\nError: ${err.message}</span>`;
+        }
+    };
+
+    init();
+</script>
+</body>
+</html>

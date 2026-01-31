@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeEditor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #0b0f1a; color: #e2e8f0; transition: all 0.3s; }
+        .editor-card { 
+            background: linear-gradient(145deg, #161c2d, #0f172a);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .editor-card:hover { 
+            border-color: #3b82f6;
+            box-shadow: 0 0 40px rgba(59, 130, 246, 0.15);
+            transform: translateY(-8px);
+        }
+        .gradient-text {
+            background: linear-gradient(to right, #60a5fa, #2dd4bf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        /* Logika przełączania języków */
+        .lang-en-content { display: none; }
+        body.en .lang-pl-content { display: none; }
+        body.en .lang-en-content { display: block; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans">
+
+    <nav class="p-6 flex justify-between items-center max-w-6xl w-full mx-auto">
+        <div class="text-2xl font-black tracking-tighter uppercase italic">Code<span class="text-blue-500">Editor</span></div>
+        <div class="flex items-center gap-6">
+            <button onclick="toggleLang()" class="text-[10px] font-bold hover:text-blue-400 transition border border-white/10 px-3 py-1.5 rounded-lg bg-white/5 uppercase tracking-widest">
+                <span class="lang-pl-content text-blue-400">English Version</span>
+                <span class="lang-en-content text-emerald-400">Polska Wersja</span>
+            </button>
+            <a href="https://github.com/Ar5urOfficial" target="_blank" class="hover:text-blue-400 transition">
+                <i class="fab fa-github text-2xl"></i>
+            </a>
+        </div>
+    </nav>
+
+    <main class="flex-grow flex flex-col items-center justify-center px-4 py-12">
+        <div class="text-center mb-16">
+            <h1 class="text-5xl md:text-7xl font-extrabold mb-6 italic tracking-tight">
+                <span class="lang-pl-content">Koduj w <span class="gradient-text">chmurze.</span></span>
+                <span class="lang-en-content">Code in the <span class="gradient-text">cloud.</span></span>
+            </h1>
+            <p class="text-gray-500 text-lg md:text-xl max-w-2xl mx-auto font-light leading-relaxed">
+                <span class="lang-pl-content">Lekkie i szybkie narzędzia programistyczne w Twojej przeglądarce. Wybierz środowisko i zacznij tworzyć.</span>
+                <span class="lang-en-content">Lightweight and fast development tools in your browser. Choose your environment and start creating.</span>
+            </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-8 w-full max-w-5xl">
+            
+            <a href="HTML-Editor/HTML-Editor.html" class="editor-card p-10 rounded-3xl group relative overflow-hidden">
+                <div class="flex items-center justify-between mb-8 text-orange-500">
+                    <div class="p-4 bg-orange-500/10 rounded-2xl shadow-lg shadow-orange-500/10">
+                        <i class="fas fa-code text-3xl"></i>
+                    </div>
+                    <div class="flex gap-2 font-mono text-[10px] font-bold opacity-70">
+                        <span class="px-2 py-1 bg-white/5 rounded">HTML</span>
+                        <span class="px-2 py-1 bg-white/5 rounded">CSS</span>
+                        <span class="px-2 py-1 bg-white/5 rounded">JS</span>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-bold mb-3 italic">HTML Editor</h3>
+                <p class="text-gray-400 text-sm leading-relaxed mb-8">
+                    <span class="lang-pl-content">Kompletne środowisko do tworzenia stron internetowych. Projektuj layouty z natychmiastowym podglądem zmian.</span>
+                    <span class="lang-en-content">Full web development environment. Design layouts with an instant preview of all your changes.</span>
+                </p>
+                <div class="flex items-center text-sm font-bold uppercase tracking-widest text-white group-hover:text-orange-400 transition">
+                    Launch Editor
+                    <i class="fas fa-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i>
+                </div>
+            </a>
+
+            <a href="PyEditor/PyEditor.html" class="editor-card p-10 rounded-3xl group">
+                <div class="flex items-center justify-between mb-8 text-blue-500">
+                    <div class="p-4 bg-blue-500/10 rounded-2xl shadow-lg shadow-blue-500/10">
+                        <i class="fab fa-python text-3xl"></i>
+                    </div>
+                    <span class="px-3 py-1 bg-blue-500/20 text-blue-400 text-[10px] font-bold uppercase tracking-tighter rounded-full border border-blue-500/30">
+                        Pyodide
+                    </span>
+                </div>
+                <h3 class="text-2xl font-bold mb-3 italic text-white">PyEditor</h3>
+                <p class="text-gray-400 text-sm leading-relaxed mb-8">
+                    <span class="lang-pl-content">Zaawansowany interpreter Python w WebAssembly. Uruchamiaj skrypty i testuj logikę bezpośrednio w przeglądarce.</span>
+                    <span class="lang-en-content">Advanced Python interpreter in WebAssembly. Run scripts and test logic directly in your browser.</span>
+                </p>
+                <div class="flex items-center text-sm font-bold uppercase tracking-widest text-white group-hover:text-blue-400 transition">
+                    Launch Editor
+                    <i class="fas fa-terminal ml-2 group-hover:translate-x-2 transition-transform"></i>
+                </div>
+            </a>
+
+        </div>
+    </main>
+
+    <footer class="p-10 text-center text-gray-600 text-sm border-t border-white/5 mt-10">
+        <div class="flex justify-center items-center gap-3 mb-4">
+            <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+            <span class="lang-pl-content italic text-[10px] uppercase tracking-widest">Systemy aktywne</span>
+            <span class="lang-en-content italic text-[10px] uppercase tracking-widest">All systems operational</span>
+        </div>
+        <p class="font-mono text-[10px] opacity-40">&copy; 2026 CodeEditor // Ar5urOfficial</p>
+    </footer>
+
+    <script>
+        function toggleLang() {
+            document.body.classList.toggle('en');
+            const isEn = document.body.classList.contains('en');
+            localStorage.setItem('codeEditorLang', isEn ? 'en' : 'pl');
+        }
+
+        window.onload = () => {
+            if (localStorage.getItem('codeEditorLang') === 'en') {
+                document.body.classList.add('en');
+            }
+        };
+    </script>
+</body>
+</html>

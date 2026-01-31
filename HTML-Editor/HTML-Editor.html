@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Editor - Ar5urOfficial Edition</title>
+    <style>
+        /* CSS - Stylistyka edytora */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1e1e1e;
+            color: white;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            background: #2d2d2d;
+            padding: 10px 20px;
+            border-bottom: 2px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 50px);
+        }
+
+        /* Panele kodu */
+        .editor-side {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            border-right: 2px solid #333;
+        }
+
+        .code-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-bottom: 1px solid #333;
+        }
+
+        .label {
+            background: #252526;
+            padding: 5px 10px;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #888;
+            font-weight: bold;
+        }
+
+        textarea {
+            flex: 1;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border: none;
+            padding: 15px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            resize: none;
+            outline: none;
+        }
+
+        textarea:focus { background: #232323; }
+
+        /* Panel podglądu */
+        .preview-side {
+            width: 50%;
+            background: white;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+
+        .status-bar {
+            font-size: 12px;
+            color: #4ec9b0;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div style="font-weight: bold; color: #007acc;">HTML-Editor <span style="color: #fff;">v1.0</span></div>
+    <div class="status-bar" id="status">Gotowy</div>
+</header>
+
+<div class="main-container">
+    <div class="editor-side">
+        <div class="code-section">
+            <div class="label" style="color: #e34c26;">HTML</div>
+            <textarea id="html-code" spellcheck="false" placeholder="Wpisz HTML..."></textarea>
+        </div>
+        <div class="code-section">
+            <div class="label" style="color: #264de4;">CSS</div>
+            <textarea id="css-code" spellcheck="false" placeholder="Wpisz CSS..."></textarea>
+        </div>
+        <div class="code-section">
+            <div class="label" style="color: #f7df1e;">JavaScript</div>
+            <textarea id="js-code" spellcheck="false" placeholder="Wpisz JS..."></textarea>
+        </div>
+    </div>
+
+    <div class="preview-side">
+        <iframe id="preview"></iframe>
+    </div>
+</div>
+
+<script>
+    // JS - Logika działania edytora
+    const htmlInput = document.getElementById('html-code');
+    const cssInput = document.getElementById('css-code');
+    const jsInput = document.getElementById('js-code');
+    const preview = document.getElementById('preview').contentWindow.document;
+    const status = document.getElementById('status');
+
+    // Domyślna zawartość na start
+    htmlInput.value = "<h1>Witaj w HTML Editorze!</h1>\n<p>Zmień coś w kodzie po lewej stronie.</p>\n<button id='btn'>Kliknij mnie</button>";
+    cssInput.value = "body { font-family: sans-serif; text-align: center; padding-top: 50px; }\nh1 { color: #007acc; }\nbutton { padding: 10px 20px; cursor: pointer; }";
+    jsInput.value = "document.getElementById('btn').addEventListener('click', () => {\n  alert('Działa!');\n});";
+
+    function update() {
+        status.innerText = "Aktualizowanie...";
+        
+        const html = htmlInput.value;
+        const css = `<style>${cssInput.value}</style>`;
+        const js = `<script>${jsInput.value}<\/script>`;
+
+        preview.open();
+        preview.write(html + css + js);
+        preview.close();
+
+        setTimeout(() => {
+            status.innerText = "Zsynchronizowano";
+        }, 500);
+    }
+
+    // Nasłuchiwanie na zmiany (z lekkim opóźnieniem dla wydajności)
+    [htmlInput, cssInput, jsInput].forEach(el => {
+        el.addEventListener('input', update);
+    });
+
+    // Uruchom podgląd przy starcie
+    update();
+</script>
+
+</body>
+</html>
